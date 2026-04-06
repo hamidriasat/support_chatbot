@@ -1,0 +1,64 @@
+/* components/ChatPanel.css */
+
+.chat-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--color-bg);
+}
+
+/* ── Header ── */
+.chat-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.chat-panel__header-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-panel__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e; /* green = online */
+}
+
+.chat-panel__title {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-text);
+}
+
+.chat-panel__clear {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.chat-panel__clear:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-muted);
+}
+
+/* ── Error banner ── */
+.chat-panel__error {
+  margin: 0 20px 8px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  font-size: 13px;
+}
