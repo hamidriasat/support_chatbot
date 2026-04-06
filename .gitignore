@@ -1,0 +1,9 @@
+
+# Ignore dynaconf secret files
+.secrets.*
+.python-version
+__pycache__/
+.vscode/
+venv/
+test.ipynb
+models/__pycache__
