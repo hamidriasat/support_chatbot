@@ -5,5 +5,9 @@
 __pycache__/
 .vscode/
 venv/
+logs/
 test.ipynb
-models/__pycache__
+utils/__pycache__
+pydantic_models/__pycache__
+agents/__pycache__
+agents/prompts/__pycache__

@@ -2,26 +2,34 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from langchain.messages import HumanMessage
-from graph import graph
-from models.request_model import InputModel
-from models.response_model import ResponseModel
+from graph import build_workflow
+from pydantic_models.request_model import InputModel
+from pydantic_models.response_model import ResponseModel
 
 
 app = FastAPI(title="Chatbot Backend")
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:5173/"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["POST", "GET"],
     allow_headers=["*"],
 )
+
+
+GRAPH = build_workflow()
 
 @app.post("/chat", response_model=ResponseModel)
 async def chat_endpoint(request: InputModel):
 
     user_message = {"messages": [HumanMessage(content= request.message)]}
-    response = graph.invoke(user_message)
+    config = {
+    "configurable": {
+        "thread_id": "1"
+    },
+    "recursion_limit": 5
+    }
+    response = GRAPH.invoke(user_message, config=config)
 
     return {"response": response["messages"][-1].content}
 

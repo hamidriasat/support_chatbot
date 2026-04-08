@@ -1,2 +1,7 @@
 [default]
 LLM = "llama-3.1-8b-instant"
+ROUTER_PROMPT = "agents/prompts/router.md"
+GENERAL_PROMPT = "agents/prompts/general.md"
+ORDER_PROMPT = "agents/prompts/order.md"
+PRODUCT_PROMPT = "agents/prompts/product.md"
+AGGREGATOR_PROMPT = "agents/prompts/aggregator.md"
