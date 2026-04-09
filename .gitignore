@@ -1,5 +1,8 @@
+# IDE (JetBrains / IntelliJ / PyCharm)
+.idea/
+# Project files
+*.iml
 
-# Ignore dynaconf secret files
 .secrets.*
 .python-version
 __pycache__/

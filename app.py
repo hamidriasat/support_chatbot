@@ -10,7 +10,7 @@ from pydantic_models.response_model import ResponseModel
 app = FastAPI(title="Chatbot Backend")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173/"],
+    allow_origins=["http://localhost:3000/"],
     allow_credentials=True,
     allow_methods=["POST", "GET"],
     allow_headers=["*"],
@@ -25,7 +25,7 @@ async def chat_endpoint(request: InputModel):
     user_message = {"messages": [HumanMessage(content= request.message)]}
     config = {
     "configurable": {
-        "thread_id": "1"
+        "thread_id": request.chat_id
     },
     "recursion_limit": 5
     }

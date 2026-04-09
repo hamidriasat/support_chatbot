@@ -30,18 +30,18 @@ Route to this agent for anything related to products or shopping help, including
 
 - Product queries using title, description, or product ID
 - Product details, features, specifications, comparisons, or availability
-- Coupons, discounts, offers, promo codes, and eligibility
 - Shopping support questions
 - Product-related customer support operations
 
 ### 3) General Support Agent (`"general"`)
 Route to this agent for anything not clearly belonging to `order` or `product`, including:
 
-- FAQ handling using the knowledge base
+- FAQ handling
 - Policy and general information queries
 - Company information
 - Service or business information
 - Complaint logging or structured issue capture
+- Coupons, discounts, offers, promo codes, and eligibility
 - Any unclear, ambiguous, broad, or mixed question that is not confidently specific to order or product
 
 ## Routing rules
@@ -94,14 +94,6 @@ Return exactly one list of strings, such as:
 ```
 
 ### Example 4
-**User message:** Do you have any promo codes for this item?
-
-**Output:**
-```python
-["product"]
-```
-
-### Example 5
 **User message:** What are your refund and return policies?
 
 **Output:**
@@ -109,7 +101,7 @@ Return exactly one list of strings, such as:
 ["general"]
 ```
 
-### Example 6
+### Example 5
 **User message:** My order is delayed, and I want to know your return policy too.
 
 **Output:**
@@ -117,7 +109,7 @@ Return exactly one list of strings, such as:
 ["order", "general"]
 ```
 
-### Example 7
+### Example 6
 **User message:** I want to compare two protein box and also check whether my existing order can be changed.
 
 **Output:**
@@ -125,7 +117,7 @@ Return exactly one list of strings, such as:
 ["product", "order"]
 ```
 
-### Example 8
+### Example 7
 **User message:** How does your complaint process work?
 
 **Output:**

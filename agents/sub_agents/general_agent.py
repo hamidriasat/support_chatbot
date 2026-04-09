@@ -18,9 +18,15 @@ def general_queries(state: AgentState) -> AgentState:
     prompt = load_prompt(path)
     model_name = settings.get("LLM")
 
-    if not all([groq_api_key, prompt, model_name]):
-        logger.error("Configuration missing: Check GROQ_API_KEY and ROUTER_PROMPT and LLM")
-        raise ValueError("Missing required configuration for Router node.")
+    if not groq_api_key:
+        logger.error("Configuration error: Check GROQ_API_KEY")
+        raise ValueError("GROQ_API_KEY is missing in for General node.")
+    if not prompt:
+        logger.error("Configuration error: Prompt is missing")
+        raise ValueError("Missing configuration: Could not load prompt from GENERAL_PROMPT path.")
+    if not model_name:
+        logger.error("Configuration error: LLM model name is missing")
+        raise ValueError("Missing configuration: LLM model name is not set.")
 
     try:
         llm = ChatGroq(model=model_name, temperature=0.2, api_key=groq_api_key)
@@ -29,10 +35,17 @@ def general_queries(state: AgentState) -> AgentState:
         response = llm.invoke(messages)
         logger.info(f"General Agent Response: {response}")
 
+        if len(state["router_decision"]) == 1:
+            return {"messages": [AIMessage(content = response.content)]}
+
         return {"general_response": response.content}
 
     except Exception as e:
         logger.error(f"Router node failed: {e}")
+        
+        if len(state["router_decision"]) == 1:
+            return {"messages": [AIMessage(content = "I encountered a technical error processing this request.")]}
+
         return {
             "general_response": "I encountered a technical error processing this request."
         }

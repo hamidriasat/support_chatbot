@@ -1,9 +1,7 @@
 import logging
-from typing import List
+from typing import List, Literal
 from langgraph.graph import StateGraph, START, END
-from langgraph.types import Send
 from langgraph.checkpoint.memory import MemorySaver
-from IPython.display import display, Image
 from agents.router_agent import router
 from pydantic_models.graph_state import AgentState
 from agents.sub_agents.general_agent import general_queries
@@ -23,9 +21,8 @@ def route_to_agent(state: AgentState) -> List[str]:
     
     Based on router's classification.
     """
-    
     decision = state["router_decision"]
-    
+
     # Simple mapping
     routing_map = {
         "order": "order_manager",
@@ -41,6 +38,14 @@ def route_to_agent(state: AgentState) -> List[str]:
     
     return next_node
 
+def after_worker_route(state: AgentState) -> Literal["aggregator_node", END]:
+    """
+    Decides whether to aggregate or finish.
+    """
+    if len(state.get("router_decision", [])) > 1:
+        return "aggregator_node"
+    
+    return END
 
 def build_workflow():
 
@@ -52,7 +57,6 @@ def build_workflow():
     workflow.add_node("product_support", product_support)
     workflow.add_node("aggregator_node", aggregator_node)
 
-
     workflow.add_edge(START, "router")
     workflow.add_conditional_edges("router", route_to_agent, {
         "order_manager": "order_manager",
@@ -60,13 +64,20 @@ def build_workflow():
         "general": "general",
         "router": "router"
     })
-    workflow.add_edge("order_manager", "aggregator_node")
-    workflow.add_edge("product_support", "aggregator_node")
-    workflow.add_edge("general", "aggregator_node")
+    
+    for worker in ["order_manager", "product_support", "general"]:
+        workflow.add_conditional_edges(
+            worker,
+            after_worker_route,
+            {
+                "aggregator_node": "aggregator_node", 
+                END: END
+            }
+        )
     workflow.add_edge("aggregator_node", END)
 
     memory = MemorySaver()
     graph = workflow.compile(checkpointer=memory)
-    #print(display(Image(graph.get_graph().draw_mermaid_png())))
+    #print(graph.get_graph().draw_mermaid())
     logger.info("Graph is compiled")
     return graph

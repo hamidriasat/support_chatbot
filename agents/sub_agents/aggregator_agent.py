@@ -18,9 +18,15 @@ def aggregator_node(state: AgentState)-> AgentState:
     prompt_text = load_prompt(path)
     model_name = settings.get("LLM")
 
-    if not all([groq_api_key, prompt_text, model_name]):
-        logger.error("Configuration missing: Check GROQ_API_KEY and ROUTER_PROMPT and LLM")
-        raise ValueError("Missing required configuration for Router node.")
+    if not groq_api_key:
+        logger.error("Configuration error: Check GROQ_API_KEY")
+        raise ValueError("GROQ_API_KEY is missing in for aggregator node.")
+    if not prompt_text:
+        logger.error("Configuration error: Prompt is missing")
+        raise ValueError("Missing configuration: Could not load prompt from AGGREGATOR_PROMPT path.")
+    if not model_name:
+        logger.error("Configuration error: LLM model name is missing")
+        raise ValueError("Missing configuration: LLM model name is not set.")
     
     responses = {
         "order": state.get("order_response", ""),
