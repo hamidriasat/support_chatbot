@@ -5,8 +5,6 @@
 //  and renders them. No state, no logic.
 //  These are the easiest components to test.
 // ─────────────────────────────────────────────
-
-import React from "react";
 import "./Message.css";
 
 // props are values passed in from the parent

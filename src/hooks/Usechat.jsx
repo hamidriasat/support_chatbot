@@ -10,6 +10,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { sendMessage, checkBackendConnection } from "../services/Api";
+import { generateUUID } from "../utils/uuid";
 
 // Each message has this shape:
 // { id: number, role: "user" | "assistant", text: string }
@@ -19,13 +20,18 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [chatId, setChatId] = useState(null);
 
   // Check backend connection on mount and every 5 seconds
+  // Also generate UUID for this chat session on mount
   useEffect(() => {
     const checkConnection = async () => {
       const connected = await checkBackendConnection();
       setIsConnected(connected);
     };
+
+    // Generate UUID for new chat on first load
+    setChatId(generateUUID());
 
     checkConnection();
     const interval = setInterval(checkConnection, 5000);
@@ -35,7 +41,7 @@ export function useChat() {
   // useCallback prevents this function from being recreated
   // on every render — good habit for functions passed to components.
   const send = useCallback(async (text) => {
-    if (!text.trim()) return;
+    if (!text.trim() || !chatId) return;
 
     const userMessage = {
       id: Date.now(),
@@ -49,7 +55,7 @@ export function useChat() {
     setError(null);
 
     try {
-      const reply = await sendMessage(text.trim(), messages);
+      const reply = await sendMessage(text.trim(), messages, chatId);
 
       const assistantMessage = {
         id: Date.now() + 1,
@@ -64,12 +70,18 @@ export function useChat() {
       // Always runs — clears loading whether success or failure
       setIsLoading(false);
     }
-  }, [messages]);
+  }, [messages, chatId]);
 
   const clearChat = useCallback(() => {
     setMessages([]);
     setError(null);
   }, []);
 
-  return { messages, isLoading, error, send, clearChat, isConnected };
+  const newChat = useCallback(() => {
+    setMessages([]);
+    setError(null);
+    setChatId(generateUUID());
+  }, []);
+
+  return { messages, isLoading, error, send, clearChat, newChat, isConnected, chatId };
 }

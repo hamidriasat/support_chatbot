@@ -13,12 +13,19 @@ import { ChatInput } from "./Chatinput";
 import "./Chatpanel.css";
 
 export function ChatPanel() {
-  const { messages, isLoading, error, send, clearChat, isConnected } = useChat();
+  const { messages, isLoading, error, send, clearChat, newChat, isConnected } = useChat();
 
   return (
     <div className="chat-panel">
       {/* ── Header ── */}
       <header className="chat-panel__header">
+        <button
+          className="chat-panel__new-chat"
+          onClick={newChat}
+          title="Start a new conversation"
+        >
+          ➕ New Chat
+        </button>
         <div className="chat-panel__header-info">
           <div 
             className="chat-panel__status-dot" 

@@ -12,15 +12,16 @@ const BASE_URL = import.meta.env.VITE_API_URL || "";
  *
  * @param {string} message   - The user's text
  * @param {Array}  history   - Previous messages (optional, for context)
+ * @param {string} chatId    - UUID for this chat session
  * @returns {Promise<string>} - The assistant's reply
  */
-export async function sendMessage(message, history = []) {
+export async function sendMessage(message, history = [], chatId) {
   const response = await fetch(`${BASE_URL}/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message, history }),
+    body: JSON.stringify({ message, history, chat_id: chatId }),
   });
 
   if (!response.ok) {
