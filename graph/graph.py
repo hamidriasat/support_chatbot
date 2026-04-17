@@ -1,51 +1,20 @@
 import logging
-from typing import List, Literal
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from agents.router_agent import router
-from pydantic_models.graph_state import AgentState
-from agents.sub_agents.general_agent import general_queries
-from agents.sub_agents.order_management_agent import order_manager
-from agents.sub_agents.product_agent import product_support
-from agents.sub_agents.aggregator_agent import aggregator_node
+from state.graph_state import AgentState
+from agents.general_agent import general_queries
+from agents.order_management_agent import order_manager
+from agents.product_agent import create_product_subgraph
+from agents.aggregator_agent import aggregator_node
+from graph.conditions import route_to_agent, after_worker_route
 from utils.logger import setup_logger
 
 
 setup_logger()
 logger = logging.getLogger(__name__)
 
-
-def route_to_agent(state: AgentState) -> List[str]:
-    """
-    Conditional edge: decides which specialized agent to call.
-    
-    Based on router's classification.
-    """
-    decision = state["router_decision"]
-
-    # Simple mapping
-    routing_map = {
-        "order": "order_manager",
-        "product": "product_support",
-        "general": "general",
-        "error": "router"
-    }
-
-    next_node = [routing_map[d] for d in decision if d in routing_map]
-    
-    if not next_node:
-        return ["general"]
-    
-    return next_node
-
-def after_worker_route(state: AgentState) -> Literal["aggregator_node", END]:
-    """
-    Decides whether to aggregate or finish.
-    """
-    if len(state.get("router_decision", [])) > 1:
-        return "aggregator_node"
-    
-    return END
+PRODUCT_AGENT = create_product_subgraph()
 
 def build_workflow():
 
@@ -54,7 +23,7 @@ def build_workflow():
     workflow.add_node("router", router)
     workflow.add_node("general", general_queries)
     workflow.add_node("order_manager", order_manager)
-    workflow.add_node("product_support", product_support)
+    workflow.add_node("product_support", PRODUCT_AGENT)
     workflow.add_node("aggregator_node", aggregator_node)
 
     workflow.add_edge(START, "router")
@@ -71,7 +40,7 @@ def build_workflow():
             after_worker_route,
             {
                 "aggregator_node": "aggregator_node", 
-                END: END
+                "end": END
             }
         )
     workflow.add_edge("aggregator_node", END)

@@ -2,9 +2,9 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from langchain.messages import HumanMessage
-from graph import build_workflow
-from pydantic_models.request_model import InputModel
-from pydantic_models.response_model import ResponseModel
+from graph.graph import build_workflow
+from models.request_model import InputModel
+from models.response_model import ResponseModel
 
 
 app = FastAPI(title="Chatbot Backend")

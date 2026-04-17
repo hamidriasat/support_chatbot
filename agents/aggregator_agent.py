@@ -1,10 +1,9 @@
 import logging
 from langchain_groq import ChatGroq
-from langchain_core.prompts import PromptTemplate
 from langchain_core.messages import AIMessage
-from pydantic_models.graph_state import AgentState
+from state.graph_state import AgentState
 from utils.config import settings
-from agents.prompts.prompt_loader import load_prompt
+from prompts.prompt_loader import load_prompt
 from utils.logger import setup_logger
 
 setup_logger()

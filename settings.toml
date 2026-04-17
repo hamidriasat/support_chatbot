@@ -1,7 +1,17 @@
 [default]
-LLM = "llama-3.1-8b-instant"
-ROUTER_PROMPT = "agents/prompts/router.md"
-GENERAL_PROMPT = "agents/prompts/general.md"
-ORDER_PROMPT = "agents/prompts/order.md"
-PRODUCT_PROMPT = "agents/prompts/product.md"
-AGGREGATOR_PROMPT = "agents/prompts/aggregator.md"
+# Model name
+LLM = "openai/gpt-oss-20b"
+EMBEDDING_MODEL = "text-embedding-3-small"
+
+# Prompt paths
+ROUTER_PROMPT = "prompts/router.md"
+GENERAL_PROMPT = "prompts/general.md"
+ORDER_PROMPT = "prompts/order.md"
+PRODUCT_PROMPT = "prompts/product.md"
+AGGREGATOR_PROMPT = "prompts/aggregator.md"
+
+# Data paths
+PRODUCT_DATA_PATH = "data/products.csv"
+ORDER_DATA_PATH = "data/orders.csv"
+INVENTORY_DATA_PATH = "data/inventory.csv"
+FAQ_DATA_PATH = "data/faqs.json"

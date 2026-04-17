@@ -16,6 +16,7 @@ A FastAPI-based backend for an intelligent customer service chatbot powered by L
 
 - Python 3.12.13
 - Groq API key
+- OpenAI API key
 
 ### Setup
 
@@ -34,11 +35,26 @@ A FastAPI-based backend for an intelligent customer service chatbot powered by L
 
 4. **Configure secrets**
    
-   Create a `.secrets.toml` file in the project root with your Groq API key:
+   Create a `.secrets.toml` file in the project root and add both your OpenAI and Groq API keys:
    ```toml
    [default]
+   OPENAI_API_KEY = "your-openai-api-key-here"
    GROQ_API_KEY = "your-groq-api-key-here"
    ```
+
+5. **Initialize the vector database**
+
+   Update the variables inside `database/ingest_data.py` before running the script.
+
+   - First run should use `page_content_column = "description"` and `collection_name = "products_desc"`.
+   - Second run should use `page_content_column = "name"` and `collection_name = "products_name"`.
+
+   After updating the script variables, run:
+   ```bash
+   python -m database.ingest_data
+   ```
+
+   This will create the vector database collections needed by the chatbot.
 
 ## Running the Server
 
@@ -58,14 +74,14 @@ Send a message to the chatbot.
 **Request:**
 ```json
 {
-  "message": "What services does CloudForge Systems offer?"
+  "message": "What supplements does Nutritional World offer?"
 }
 ```
 
 **Response:**
 ```json
 {
-  "response": "CloudForge Systems offers: - Cloud migration and infrastructure consulting - Custom software development - AI/ML solution implementation - DevOps automation and CI/CD pipeline setup - Enterprise application modernization"
+  "response": "Nutritional World offers halal-certified supplements including whey protein, creatine, weight gainers, fat burners, pre-workout, post-workout, multivitamins, and energy supplements. Visit www.nutritionalworld.com.pk or contact us on WhatsApp at +92 306 9111184 for details."
 }
 ```
 
@@ -85,13 +101,38 @@ Check if the server is running.
 
 ```
 backend/
-├── app.py                    # FastAPI application and endpoints
-├── graph.py                  # LangGraph workflow and chatbot agent
-├── config.py                 # Configuration management (Dynaconf)
-├── requirements.txt          # Python dependencies
-├── .secrets.toml             # Configuration secrets (create this - add to .gitignore)
-│
-└── models/
-    ├── request_model.py      # InputModel - incoming chat messages
-    └── response_model.py     # ResponseModel - outgoing responses
+├── app.py                        # FastAPI application and endpoints
+├── README.md                     # Project documentation
+├── requirements.txt              # Python dependencies
+├── settings.toml                 # Default settings configuration
+├── .secrets.toml                 # Configuration secrets (create this - add to .gitignore)
+├── agents/                       # Domain-specific agent implementations
+│   ├── aggregator_agent.py
+│   ├── general_agent.py
+│   ├── order_management_agent.py
+│   ├── product_agent.py
+│   └── router_agent.py
+├── database/                     # Vector DB ingestion and config
+│   ├── chroma_config.py
+│   └── ingest_data.py
+├── graph/                        # LangGraph workflow and state logic
+│   ├── conditions.py
+│   └── graph.py
+├── state/
+│   └── graph_state.py            # Current workflow state tracking
+├── tools/
+│   └── product_search.py         # Product search tools
+├── utils/
+│   ├── config.py                 # Dynaconf and config helpers
+│   └── logger.py                 # Logging utilities
+├── models/
+│   ├── request_model.py          # InputModel - incoming chat messages
+│   └── response_model.py         # ResponseModel - outgoing responses
+└── prompts/                      # Agent prompt templates
+    ├── aggregator.md
+    ├── general.md
+    ├── order.md
+    ├── product.md
+    ├── router.md
+    └── prompt_loader.py
 ```

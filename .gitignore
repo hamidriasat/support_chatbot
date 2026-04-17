@@ -9,8 +9,15 @@ __pycache__/
 .vscode/
 venv/
 logs/
+chroma_db/
+data/original_ data
+data/faqs.json
+data/products.csv
 test.ipynb
 utils/__pycache__
-pydantic_models/__pycache__
+models/__pycache__
 agents/__pycache__
-agents/prompts/__pycache__
+prompts/__pycache__
+tools/__pycache__
+state/__pycache__
+database/__pycache__

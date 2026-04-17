@@ -1,8 +1,10 @@
-from typing import List, Optional
-from langgraph.graph.message import MessagesState
+from typing import List, Optional, Annotated
+from langchain_core.messages import AnyMessage
+from langgraph.graph.message import MessagesState, add_messages
 
 
 class AgentState(MessagesState):
+    tool_messages: Annotated[list[AnyMessage], add_messages]
     router_decision : List[str] = []
 
     order_response: Optional[str]= ""
