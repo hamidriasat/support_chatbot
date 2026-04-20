@@ -63,7 +63,7 @@ def product_node(state: SubAgentState):
         return {"messages": [response]}
     
     except Exception as e:
-        logger.error(f"Router node failed: {e}")
+        logger.error(f"Prodcut node failed: {e}")
         return {"messages": [AIMessage(content = "I encountered a technical error processing this request.")]}
 
 

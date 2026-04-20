@@ -46,3 +46,4 @@ def get_vector_store(collection_name: str):
 # Pre-initialize instances for easy import
 product_name = get_vector_store("products_name")
 product_desc = get_vector_store("products_desc")
+faqs = get_vector_store("faqs")

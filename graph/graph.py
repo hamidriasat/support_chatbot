@@ -4,7 +4,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.runnables import RunnableConfig
 from agents.router_agent import router
 from state.graph_state import AgentState
-from agents.general_agent import general_node
+from agents.general_agent import create_general_subgraph
 from agents.order_agent import create_order_subgraph
 from agents.product_agent import create_product_subgraph
 from agents.aggregator_agent import aggregator_node
@@ -18,6 +18,7 @@ MEMORY = MemorySaver()
 
 PRODUCT_AGENT = create_product_subgraph(checkpointer=MEMORY)
 ORDER_AGENT = create_order_subgraph(checkpointer=MEMORY)
+GENERAL_AGENT = create_general_subgraph(checkpointer=MEMORY)
 
 
 # bridge node for product agent
@@ -59,6 +60,27 @@ def order_node(state: AgentState, config: RunnableConfig):
         return {"messages": [final_message]}
     else:
         return {"order_response": final_message.content}
+
+
+# bridge node for general agent
+def general_node(state: AgentState, config: RunnableConfig):
+
+    user_query = state["messages"][-1]
+    initial_sub_state = {"messages": [user_query]}
+
+    subgraph_config = config.copy()
+    subgraph_config["configurable"] = {
+        **config.get("configurable", {}),
+        "checkpoint_ns": "product_subgraph" 
+    }
+
+    subgraph_response = GENERAL_AGENT.invoke(initial_sub_state, config=subgraph_config)
+    final_message = subgraph_response["messages"][-1]
+
+    if len(state["router_decision"]) == 1:
+        return {"messages": [final_message]}
+    else:
+        return {"general_response": final_message.content}
 
 
 # Main graph
