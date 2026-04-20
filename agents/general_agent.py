@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 
-def general_queries(state: AgentState) -> AgentState:
+def general_node(state: AgentState) -> AgentState:
     groq_api_key = settings.get("GROQ_API_KEY")
     path = settings.get("GENERAL_PROMPT")
     prompt = load_prompt(path)

@@ -7,58 +7,54 @@ from state.subagent_state import SubAgentState
 from utils.config import settings
 from utils.logger import setup_logger
 from prompts.prompt_loader import load_prompt
-from tools.product_tools import product_search_id, product_search_category,\
-      product_search_brand, product_search_sub_category, prodcut_search_name,\
-      prodcut_search_description
-
+from tools.order_tools import order_manager, inventory_manager
 
 setup_logger()
+
 logger = logging.getLogger(__name__)
 
-PRODUCT_TOOLS = [product_search_id, product_search_category, product_search_brand, 
-                 product_search_sub_category, prodcut_search_name, prodcut_search_description]
+ORDER_TOOLS = [order_manager, inventory_manager]
 _LLM_WITH_TOOLS = None
-_PRODUCT_PROMPT_CONTENT = None
+_ORDER_PROMPT_CONTENT = None
 
 
 def _initialize_llm():
-    global _LLM_WITH_TOOLS, _PRODUCT_PROMPT_CONTENT
+    global _LLM_WITH_TOOLS, _ORDER_PROMPT_CONTENT
     
-    if _LLM_WITH_TOOLS is not None and _PRODUCT_PROMPT_CONTENT is not None:
+    if _LLM_WITH_TOOLS is not None and _ORDER_PROMPT_CONTENT is not None:
         return
 
     groq_api_key = settings.get("GROQ_API_KEY")
-    path = settings.get("PRODUCT_PROMPT")
+    path = settings.get("ORDER_PROMPT")
     model_name = settings.get("LLM")
 
     if not groq_api_key:
         logger.error("Configuration error: Check GROQ_API_KEY")
-        raise ValueError("GROQ_API_KEY is missing for product node.")
+        raise ValueError("GROQ_API_KEY is missing for order node.")
     if not path:
         logger.error("Configuration error: Prompt path is missing")
-        raise ValueError("Missing configuration: Could not load prompt from PRODUCT_PROMPT path.")
+        raise ValueError("Missing configuration: Could not load prompt from ORDER_PROMPT path.")
     if not model_name:
         logger.error("Configuration error: LLM model name is missing")
         raise ValueError("Missing configuration: LLM model name is not set.")
 
-    _PRODUCT_PROMPT_CONTENT = load_prompt(path)
+    _ORDER_PROMPT_CONTENT = load_prompt(path)
     
-    if not _PRODUCT_PROMPT_CONTENT:
+    if not _ORDER_PROMPT_CONTENT:
         logger.error("Configuration error: Prompt is missing")
         raise ValueError("Missing configuration: Could not load prompt content.")
 
     llm = ChatGroq(model=model_name, temperature=0.3, api_key=groq_api_key)
-    _LLM_WITH_TOOLS = llm.bind_tools(PRODUCT_TOOLS)
-    logger.info("ChatGroq LLM and Product Tools globally initialized.")
+    _LLM_WITH_TOOLS = llm.bind_tools(ORDER_TOOLS)
 
 
-def product_node(state: SubAgentState):
+def order_node(state: SubAgentState):
     try:
         _initialize_llm()
-        messages = [SystemMessage(content=_PRODUCT_PROMPT_CONTENT)] + state["messages"]
+        messages = [SystemMessage(content=_ORDER_PROMPT_CONTENT)] + state["messages"]
 
         response = _LLM_WITH_TOOLS.invoke(messages)
-        logger.info(f"Product Agent Response: {response}")
+        logger.info(f"Order Agent Response: {response}")
         
         return {"messages": [response]}
     
@@ -68,8 +64,8 @@ def product_node(state: SubAgentState):
 
 
 # tool condition
-def prodcut_should_continue(state: SubAgentState) -> str:
-    """Checks the tool_messages list to see if a tool needs to run."""
+def order_should_continue(state: SubAgentState) -> str:
+    """Checks the messages list to see if a tool needs to run."""
     
     if not state["messages"]:
         return "end"
@@ -82,14 +78,14 @@ def prodcut_should_continue(state: SubAgentState) -> str:
     return "end"
 
 
-# prodcut agent sub-graph
-def create_product_subgraph(checkpointer=None):
-    """Create product agent subgraph with tool calling loop"""
+# order agent sub-graph
+def create_order_subgraph(checkpointer=None):
+    """Create order agent subgraph with tool calling loop"""
     subgraph = StateGraph(SubAgentState)
     
     # Add nodes
-    subgraph.add_node("agent", product_node)
-    subgraph.add_node("tools", ToolNode(PRODUCT_TOOLS))
+    subgraph.add_node("agent", order_node)
+    subgraph.add_node("tools", ToolNode(ORDER_TOOLS))
     
     # Entry point
     subgraph.add_edge(START,"agent")
@@ -97,7 +93,7 @@ def create_product_subgraph(checkpointer=None):
     # Agent decides: call tools or finish
     subgraph.add_conditional_edges(
         "agent",
-        prodcut_should_continue,
+        order_should_continue,
         {
             "tools": "tools",
             "end": END

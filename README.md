@@ -44,12 +44,9 @@ A FastAPI-based backend for an intelligent customer service chatbot powered by L
 
 5. **Initialize the vector database**
 
-   Update the variables inside `database/ingest_data.py` before running the script.
+   Run the script.
 
-   - First run should use `page_content_column = "description"` and `collection_name = "products_desc"`.
-   - Second run should use `page_content_column = "name"` and `collection_name = "products_name"`.
-
-   After updating the script variables, run:
+   run:
    ```bash
    python -m database.ingest_data
    ```

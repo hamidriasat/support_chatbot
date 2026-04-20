@@ -4,24 +4,27 @@ from langchain_chroma import Chroma
 from database.chroma_config import CHROMA_PATH, initialize_embedding
 from utils.config import settings
 
-def build_catalog():
+
+def build_catalog(page_content_column, collection_name):
     df = pd.read_csv(settings.get("PRODUCT_DATA_PATH"))
     df = df.fillna("information not available")
+
     embeddings = initialize_embedding()
-    # Initialize Loader (Embedding ONLY the 'name' or 'description' column)
-    loader = DataFrameLoader(df, page_content_column="description")
+
+    loader = DataFrameLoader(df, page_content_column=page_content_column)
     documents = loader.load()
-    
-    print(f"Embedding {len(documents)} records into Chroma...")
-    
-    # This creates the physical files in your ./chroma_db folder
+
+    print(f"Embedding {len(documents)} records into '{collection_name}'...")
+
     Chroma.from_documents(
         documents=documents,
         embedding=embeddings,
         persist_directory=CHROMA_PATH,
-        collection_name="products_desc" # Matches your config name
+        collection_name=collection_name
     )
-    print("Ingestion complete.")
+
+    print(f"Ingestion complete for '{collection_name}'.")
 
 if __name__ == "__main__":
-    build_catalog()
+    build_catalog("description", "products_desc")
+    build_catalog("product_name", "products_name")

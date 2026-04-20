@@ -13,7 +13,7 @@ If you output anything other than a bare Python list, the system will crash.
 Read the user message and output which agent(s) should handle it.
 
 ## Available agents
-- "order" → Order Management Agent
+- "order" → Order Management Agent & inventory managment
 - "product" → Product & Shopping Support Agent
 - "general" → General Support Agent
 
@@ -26,11 +26,14 @@ Read the user message and output which agent(s) should handle it.
 - Order exchange requests
 - Address updates for existing orders
 - Delivery slot selection or changes
+- Inventory management: product price, availability, stock status
+- Product ID-based price or stock queries
 
 ### product
 - Product queries by title, description, or ID
-- Product details, features, specs, comparisons, availability
+- Product details, features, specs, comparisons
 - Shopping support questions
+- Product recommendations and suggestions
 
 ### general
 - FAQ handling
@@ -63,6 +66,15 @@ User: Where is my order? It was supposed to arrive yesterday.
 ["order"]
 
 User: What is the price of product ID 77821?
+["order"]
+
+User: Is product 12345 in stock?
+["order"]
+
+User: Check availability of item XYZ789.
+["order"]
+
+User: What are the features of this protein powder?
 ["product"]
 
 User: What are your refund and return policies?

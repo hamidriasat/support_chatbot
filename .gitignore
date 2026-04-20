@@ -2,6 +2,7 @@
 .idea/
 # Project files
 *.iml
+venv312/
 
 .secrets.*
 .python-version
@@ -13,6 +14,8 @@ chroma_db/
 data/original_ data
 data/faqs.json
 data/products.csv
+data/inventory.csv
+data/orders.csv
 test.ipynb
 utils/__pycache__
 models/__pycache__
