@@ -2,6 +2,7 @@ import logging
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
 from langchain_core.runnables import RunnableConfig
+from langchain_core.messages import AIMessage
 from agents.router_agent import router
 from state.graph_state import AgentState
 from agents.general_agent import create_general_subgraph
@@ -42,24 +43,57 @@ def prodcut_node(state: AgentState, config: RunnableConfig):
         return {"product_response": final_message.content}
 
 
-# bridge node for product agent
+# bridge node for order agent
 def order_node(state: AgentState, config: RunnableConfig):
-
+    """
+    Bridge node that invokes the order agent subgraph.
+    Handles resumption from waiting for user confirmation.
+    """
     user_query = state["messages"][-1]
-    initial_sub_state = {"messages": [user_query]}
-
+    
     subgraph_config = config.copy()
     subgraph_config["configurable"] = {
         **config.get("configurable", {}),
         "checkpoint_ns": "order_subgraph"
     }
-    subgraph_response = ORDER_AGENT.invoke(initial_sub_state, config=subgraph_config)
-    final_message = subgraph_response["messages"][-1]
-
-    if len(state["router_decision"]) == 1:
-        return {"messages": [final_message]}
+    
+    # Get current subgraph state
+    sub_state = ORDER_AGENT.get_state(subgraph_config)
+    
+    if sub_state.next and "update_tools" in sub_state.next:
+        current_messages = sub_state.values["messages"]
+        updated_state = {
+            "messages": current_messages + [user_query]
+        }
+        subgraph_response = ORDER_AGENT.invoke(updated_state, config=subgraph_config)
     else:
-        return {"order_response": final_message.content}
+        initial_sub_state = {"messages": [user_query]}
+        subgraph_response = ORDER_AGENT.invoke(initial_sub_state, config=subgraph_config)
+    
+    new_sub_state = ORDER_AGENT.get_state(subgraph_config)
+    if new_sub_state.next and "update_tools" in new_sub_state.next:
+        final_message = subgraph_response["messages"][-1]
+        
+        # If the message is empty (tool_calls without content), provide meaningful message
+        if not final_message.content or final_message.content.strip() == "":
+            if hasattr(final_message, "tool_calls") and final_message.tool_calls:
+                tool_name = final_message.tool_calls[0].get("name")
+                if tool_name == "update_order":
+                    final_message = AIMessage(
+                        content="Ready to update your order. Reply **YES** to confirm or **NO** to cancel."
+                    )
+        
+        if len(state["router_decision"]) == 1:
+            return {"messages": [final_message]}
+        else:
+            return {"order_response": final_message.content}
+    
+    final_message = subgraph_response["messages"][-1]
+    
+    if len(state["router_decision"]) == 1:
+        return {"messages": [final_message], "waiting_user": False}
+    else:
+        return {"order_response": final_message.content, "waiting_user": False}
 
 
 # bridge node for general agent
@@ -71,7 +105,7 @@ def general_node(state: AgentState, config: RunnableConfig):
     subgraph_config = config.copy()
     subgraph_config["configurable"] = {
         **config.get("configurable", {}),
-        "checkpoint_ns": "product_subgraph" 
+        "checkpoint_ns": "general_subgraph" 
     }
 
     subgraph_response = GENERAL_AGENT.invoke(initial_sub_state, config=subgraph_config)

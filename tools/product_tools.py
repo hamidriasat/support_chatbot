@@ -48,10 +48,18 @@ def _format_products(products_df, limit=3):
 @tool("product_search_id")
 def product_search_id(id:str):
     """
-    search the product by id
-    return the product information
-    """
+    Retrieve product details using an exact product ID.
 
+    Use this tool when the user provides a specific product ID and wants detailed information about that product.
+
+    Parameters:
+        id (str): The unique identifier of the product (case-sensitive or as stored in the dataset).
+
+    Returns:
+        str: A formatted string containing product details such as name, category, description, brand, etc.
+    Errors:
+        - Returns "Product not found." if the ID does not exist.
+    """
     try:
         product = DF.loc[id]
         formatted_response = _format_product(product)
@@ -64,8 +72,18 @@ def product_search_id(id:str):
 @tool("product_search_category")
 def product_search_category(category:str):
     """
-    product search by category
-    return products from searched category
+    Search for products within a specific category.
+
+    Use this tool when the user asks for products belonging to a general category.
+
+    Parameters:
+        category (str): The category name (case-insensitive).
+
+    Returns:
+        str: A formatted string containing all matching products in that category.
+
+    Errors:
+        - Returns "No products found in this category." if no matches exist.
     """
     products  = DF[DF['category']== category.lower()]
 
@@ -79,8 +97,18 @@ def product_search_category(category:str):
 @tool("product_search_sub_category")
 def product_search_sub_category(sub_category:str):
     """
-    product search by sub-category
-    return products from searched sub category
+    Search for products within a specific sub-category.
+
+    Use this tool when the user provides a more specific classification within a category.
+
+    Parameters:
+        sub_category (str): The sub-category name (case-insensitive).
+
+    Returns:
+        str: A formatted string containing all matching products in that sub-category.
+
+    Errors:
+        - Returns "No products found in this sub-category." if no matches exist.
     """
     products  = DF[DF['sub_category']== sub_category.lower()]
 
@@ -94,8 +122,18 @@ def product_search_sub_category(sub_category:str):
 @tool("product_search_brand")
 def product_search_brand(name:str):
     """
-    product search by brand name
-    return products from searched brand
+    Search for products by brand name.
+
+    Use this tool when the user specifies a brand and wants to see all products from that brand.
+
+    Parameters:
+        name (str): The brand name (case-insensitive).
+
+    Returns:
+        str: A formatted string containing all products associated with the given brand.
+
+    Errors:
+        - Returns "No products found for this brand." if no matches exist.
     """
     products  = DF[DF['brand']== name.lower()]
 
@@ -150,7 +188,15 @@ def format_chroma_results(docs, mode:str, limit=2):
 @tool(description="prodcut_search_name")
 def prodcut_search_name(prodcut_name:str):
     """
-    take prodcut_name as input and return the top 2 results
+    Search for products based on their name.
+
+    Use this tool when the user provides a product name or partial name.
+
+    Parameters:
+        product_name (str): The name or partial name of the product.
+
+    Returns:
+        str: A formatted string containing the top 2 most similar product matches.
     """
     result = product_name.similarity_search(query=prodcut_name, k=2)
     formatted_answer = format_chroma_results(result,"name")
@@ -160,7 +206,19 @@ def prodcut_search_name(prodcut_name:str):
 @tool(description="prodcut_search_description")
 def prodcut_search_description(prodcut_description:str):
     """
-    Take prodcut_description as input and return top 2 results
+    Search for products based on description, features, or use-case.
+
+    Use this tool when the user describes what they are looking for instead of giving a product name.
+
+    Parameters:
+        product_description (str): A natural language description of the desired product.
+
+    Returns:
+        str: A formatted string containing the top 2 most relevant product matches.
+    
+    Notes:
+        - Best for long, descriptive, or feature-based queries.
+        - Prefer this over name search when the query is not an exact product name.
     """
 
     result = product_desc.similarity_search(query=prodcut_description, k=2)

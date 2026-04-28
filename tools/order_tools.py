@@ -38,11 +38,22 @@ def format_order_response(order):
     except Exception as e:
         return f"Error formatting order details: {str(e)}"
 
-
-@tool("order_manager")
-def order_manager(order_id: str):
+# read order from csv
+@tool("read_order")
+def read_order(order_id: str):
     """
-    takes the order_id and return the string containing information about that order.
+    Retrieve details of a specific order.
+
+    Use this tool when you need to look up information about an order by its ID.
+
+    Parameters:
+        order_id (str): The unique identifier of the order (case-insensitive).
+
+    Returns:
+        str: A formatted string containing order details such as product info, status, etc.
+
+    Errors:
+        - Returns "order id not found" if the order does not exist.
     """
     initialize()
     try:
@@ -50,6 +61,36 @@ def order_manager(order_id: str):
         return format_order_response(order_detail)
     except KeyError:
         return "order id not found"
+
+
+# update the order
+@tool(description="update_order")
+def update_order(order_id: str, column: str, value: str):
+    """
+    Update a specific field of an existing order.
+
+    Use this tool when you need to modify order information such as status, address, or other fields.
+
+    Parameters:
+        order_id (str): The unique identifier of the order (case-insensitive).
+        column (str): The column name to update (must match a valid column in the order dataset).
+        value (str): The new value to assign to the specified column.
+
+    Returns:
+        str: Confirmation message if the update is successful.
+
+    Errors:
+        - Returns "order id does not exist." if the order is not found.
+        - May fail if the column name is invalid.
+    """
+    initialize()
+    try:
+        DF_ORDER.loc[order_id.lower(), column]= value
+        DF_ORDER.to_csv(settings.get("ORDER_DATA_PATH"), index=True)
+        return "order is updated."
+
+    except KeyError:
+        return "order id does not exits."
 
 
 def format_inventory_response(inventory):
@@ -65,9 +106,21 @@ def format_inventory_response(inventory):
 
 
 # inventory tool
-@tool("inventory_manager")
-def inventory_manager(product_id:str):
+@tool("read_inventory")
+def read_inventory(product_id:str):
     """
+    Retrieve inventory details for a specific product using its ID.
+
+    Use this tool when you already have an exact product_id and need stock or inventory information.
+
+    Parameters:
+        product_id (str): The unique identifier of the product (case-insensitive).
+
+    Returns:
+        str: A formatted string containing inventory details (e.g., stock level, availability, etc.).
+
+    Errors:
+        - Returns "product not found" if the product_id does not exist.
     """
     initialize()
     try:

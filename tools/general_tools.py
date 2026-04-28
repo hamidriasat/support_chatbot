@@ -15,7 +15,19 @@ def format_faq(docs: list):
 @tool(description="faq_tool")
 def faq_tool(query:str):
     """
-    takes the user query return the relevent faq question and answer
+    Retrieve relevant FAQ answers based on a user query.
+
+    Use this tool when the user asks a general question, support topics, or common issues.
+
+    Parameters:
+        query (str): The user's question or issue in natural language.
+
+    Returns:
+        str: A formatted string containing the top 2 most relevant FAQ question-answer pairs.
+
+    Notes:
+        - Best used for general support questions, not product-specific queries.
+        - Prefer other tools if the query is about a specific product, order, or inventory.
     """
 
     answer = faqs.similarity_search(query=query, k=2)

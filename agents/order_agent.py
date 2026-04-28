@@ -7,13 +7,15 @@ from state.subagent_state import SubAgentState
 from utils.config import settings
 from utils.logger import setup_logger
 from prompts.prompt_loader import load_prompt
-from tools.order_tools import order_manager, inventory_manager
+from tools.order_tools import read_order, update_order, read_inventory
 
 setup_logger()
 
 logger = logging.getLogger(__name__)
 
-ORDER_TOOLS = [order_manager, inventory_manager]
+READ_TOOLS = [read_order, read_inventory]
+WRITE_TOOLS = [update_order]
+ALL_TOOLS = READ_TOOLS + WRITE_TOOLS
 _LLM_WITH_TOOLS = None
 _ORDER_PROMPT_CONTENT = None
 
@@ -45,7 +47,7 @@ def _initialize_llm():
         raise ValueError("Missing configuration: Could not load prompt content.")
 
     llm = ChatGroq(model=model_name, temperature=0.3, api_key=groq_api_key)
-    _LLM_WITH_TOOLS = llm.bind_tools(ORDER_TOOLS)
+    _LLM_WITH_TOOLS = llm.bind_tools(ALL_TOOLS)
 
 
 def order_node(state: SubAgentState):
@@ -72,10 +74,20 @@ def order_should_continue(state: SubAgentState) -> str:
     
     # Find the last AIMessage
     last_message = state["messages"][-1]
-    if getattr(last_message, 'tool_calls', None):
-            return "tools"
+    if not hasattr(last_message, "tool_calls") or not last_message.tool_calls:
+            return "end"
     
-    return "end"
+    tool_names = {tc["name"] for tc in last_message.tool_calls}
+    
+    read_tool_names = {tool.name for tool in READ_TOOLS}
+    write_tool_names = {tool.name for tool in WRITE_TOOLS}
+
+    if tool_names & write_tool_names:  # Any overlap with write tools
+        return "update_tools"
+    elif tool_names & read_tool_names:
+        return "read_tools"
+    else:
+        return "end"
 
 
 # order agent sub-graph
@@ -85,7 +97,8 @@ def create_order_subgraph(checkpointer=None):
     
     # Add nodes
     subgraph.add_node("agent", order_node)
-    subgraph.add_node("tools", ToolNode(ORDER_TOOLS))
+    subgraph.add_node("read_tools", ToolNode(READ_TOOLS))
+    subgraph.add_node("update_tools", ToolNode(WRITE_TOOLS))
     
     # Entry point
     subgraph.add_edge(START,"agent")
@@ -95,12 +108,14 @@ def create_order_subgraph(checkpointer=None):
         "agent",
         order_should_continue,
         {
-            "tools": "tools",
+            "update_tools": "update_tools",
+            "read_tools":"read_tools",
             "end": END
         }
     )
     
     # After tools, always go back to agent
-    subgraph.add_edge("tools", "agent")
+    subgraph.add_edge("read_tools", "agent")
+    subgraph.add_edge("update_tools", "agent") 
     
-    return subgraph.compile(checkpointer=checkpointer)
+    return subgraph.compile(checkpointer=checkpointer, interrupt_before=["update_tools"])

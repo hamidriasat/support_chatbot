@@ -9,5 +9,4 @@ class AgentState(MessagesState):
     product_response: Optional[str]= ""
     general_response: Optional[str]= ""
 
-    waiting_user: bool = False
-    human_response: str = ""
+    waiting_for_approval: bool = False
