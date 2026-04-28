@@ -13,7 +13,7 @@ import { ChatInput } from "./Chatinput";
 import "./Chatpanel.css";
 
 export function ChatPanel() {
-  const { messages, isLoading, error, send, clearChat, newChat, isConnected } = useChat();
+  const { messages, isLoading, error, send, clearChat, newChat, isConnected, waitingForApproval, handleApproval } = useChat();
 
   return (
     <div className="chat-panel">
@@ -54,7 +54,7 @@ export function ChatPanel() {
       )}
 
       {/* ── Input ── */}
-      <ChatInput onSend={send} isLoading={isLoading} />
+      <ChatInput onSend={send} isLoading={isLoading} waitingForApproval={waitingForApproval} onApproval={handleApproval} />
     </div>
   );
 }

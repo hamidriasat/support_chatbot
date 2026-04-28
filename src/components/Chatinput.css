@@ -2,11 +2,85 @@
 
 .chat-input {
   display: flex;
-  align-items: flex-end;
+  flex-direction: column;
   gap: 10px;
   padding: 14px 20px;
   border-top: 1px solid var(--color-border);
   background: var(--color-bg);
+}
+
+.chat-input__approval {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: rgba(59, 130, 246, 0.05);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 8px;
+  gap: 16px;
+}
+
+.chat-input__approval-text {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.chat-input__approval-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input__approval-yes,
+.chat-input__approval-no {
+  padding: 6px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.chat-input__approval-yes {
+  background: #22c55e;
+  color: white;
+}
+
+.chat-input__approval-yes:hover:not(:disabled) {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+
+.chat-input__approval-yes:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.chat-input__approval-no {
+  background: #ef4444;
+  color: white;
+}
+
+.chat-input__approval-no:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.chat-input__approval-no:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.chat-input__approval-yes:disabled,
+.chat-input__approval-no:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.chat-input__input-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
 }
 
 .chat-input__textarea {
