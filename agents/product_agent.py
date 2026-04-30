@@ -83,7 +83,7 @@ def prodcut_should_continue(state: SubAgentState) -> str:
 
 
 # prodcut agent sub-graph
-def create_product_subgraph(checkpointer=None):
+def create_product_subgraph():
     """Create product agent subgraph with tool calling loop"""
     subgraph = StateGraph(SubAgentState)
     
@@ -107,4 +107,4 @@ def create_product_subgraph(checkpointer=None):
     # After tools, always go back to agent
     subgraph.add_edge("tools", "agent")
     
-    return subgraph.compile(checkpointer=checkpointer)
+    return subgraph.compile()

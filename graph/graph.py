@@ -1,8 +1,6 @@
 import logging
 from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.memory import MemorySaver
-from langchain_core.runnables import RunnableConfig
-from langchain_core.messages import AIMessage
 from agents.router_agent import router
 from state.graph_state import AgentState
 from agents.general_agent import create_general_subgraph
@@ -17,137 +15,86 @@ setup_logger()
 logger = logging.getLogger(__name__)
 MEMORY = MemorySaver()
 
-PRODUCT_AGENT = create_product_subgraph(checkpointer=MEMORY)
-ORDER_AGENT = create_order_subgraph(checkpointer=MEMORY)
-GENERAL_AGENT = create_general_subgraph(checkpointer=MEMORY)
+PRODUCT_AGENT = create_product_subgraph()
+ORDER_AGENT = create_order_subgraph()
+GENERAL_AGENT = create_general_subgraph()
 
 
-# bridge node for product agent
-def prodcut_node(state: AgentState, config: RunnableConfig):
+# ── Entry/exit mappers ──────────────────────────────────────────────
 
-    user_query = state["messages"][-1]
-    initial_sub_state = {"messages": [user_query]}
+def enter_subgraph(state: AgentState) -> dict:
+    """Pass only the latest user message into the subgraph."""
+    return {"messages": state["messages"]}
 
-    subgraph_config = config.copy()
-    subgraph_config["configurable"] = {
-        **config.get("configurable", {}),
-        "checkpoint_ns": "product_subgraph" 
+
+def exit_order(state: dict) -> dict:
+    # Can't read parent AgentState here — state is the child's output
+    # So we return BOTH fields; whichever the parent state schema ignores is dropped
+    final = state["messages"][-1]
+    return {
+        "messages": [final],
+        "order_response": final.content
     }
 
-    subgraph_response = PRODUCT_AGENT.invoke(initial_sub_state, config=subgraph_config)
-    final_message = subgraph_response["messages"][-1]
 
-    if len(state["router_decision"]) == 1:
-        return {"messages": [final_message]}
-    else:
-        return {"product_response": final_message.content}
-
-
-# bridge node for order agent
-def order_node(state: AgentState, config: RunnableConfig):
-    """
-    Bridge node that invokes the order agent subgraph.
-    Handles resumption from waiting for user confirmation.
-    """
-    user_query = state["messages"][-1]
-    
-    subgraph_config = config.copy()
-    subgraph_config["configurable"] = {
-        **config.get("configurable", {}),
-        "checkpoint_ns": "order_subgraph"
-    }
-    
-    # Get current subgraph state
-    sub_state = ORDER_AGENT.get_state(subgraph_config)
-    
-    if sub_state.next and "update_tools" in sub_state.next:
-        current_messages = sub_state.values["messages"]
-        updated_state = {
-            "messages": current_messages + [user_query]
-        }
-        subgraph_response = ORDER_AGENT.invoke(updated_state, config=subgraph_config)
-    else:
-        initial_sub_state = {"messages": [user_query]}
-        subgraph_response = ORDER_AGENT.invoke(initial_sub_state, config=subgraph_config)
-    
-    new_sub_state = ORDER_AGENT.get_state(subgraph_config)
-    if new_sub_state.next and "update_tools" in new_sub_state.next:
-        final_message = subgraph_response["messages"][-1]
-        
-        # If the message is empty (tool_calls without content), provide meaningful message
-        if not final_message.content or final_message.content.strip() == "":
-            if hasattr(final_message, "tool_calls") and final_message.tool_calls:
-                tool_name = final_message.tool_calls[0].get("name")
-                if tool_name == "update_order":
-                    final_message = AIMessage(
-                        content="Ready to update your order. Reply **YES** to confirm or **NO** to cancel."
-                    )
-        
-        if len(state["router_decision"]) == 1:
-            return {"messages": [final_message]}
-        else:
-            return {"order_response": final_message.content}
-    
-    final_message = subgraph_response["messages"][-1]
-    
-    if len(state["router_decision"]) == 1:
-        return {"messages": [final_message], "waiting_user": False}
-    else:
-        return {"order_response": final_message.content, "waiting_user": False}
-
-
-# bridge node for general agent
-def general_node(state: AgentState, config: RunnableConfig):
-
-    user_query = state["messages"][-1]
-    initial_sub_state = {"messages": [user_query]}
-
-    subgraph_config = config.copy()
-    subgraph_config["configurable"] = {
-        **config.get("configurable", {}),
-        "checkpoint_ns": "general_subgraph" 
+def exit_product(state: dict) -> dict:
+    final = state["messages"][-1]
+    return {
+        "messages": [final],
+        "product_response": final.content
     }
 
-    subgraph_response = GENERAL_AGENT.invoke(initial_sub_state, config=subgraph_config)
-    final_message = subgraph_response["messages"][-1]
 
-    if len(state["router_decision"]) == 1:
-        return {"messages": [final_message]}
-    else:
-        return {"general_response": final_message.content}
+def exit_general(state: dict) -> dict:
+    final = state["messages"][-1]
+    return {
+        "messages": [final],
+        "general_response": final.content
+    }
 
 
 # Main graph
 def build_workflow():
-
     workflow = StateGraph(AgentState)
 
     workflow.add_node("router", router)
-    workflow.add_node("general", general_node)
-    workflow.add_node("order_manager", order_node)
-    workflow.add_node("product_support", prodcut_node)
+
+    # ✅ Subgraphs added directly as nodes with entry/exit mappers
+    workflow.add_node(
+        "order_manager",
+        enter_subgraph | ORDER_AGENT | exit_order
+    )
+    workflow.add_node(
+        "product_support",
+        enter_subgraph | PRODUCT_AGENT | exit_product
+    )
+    workflow.add_node(
+        "general",
+        enter_subgraph | GENERAL_AGENT | exit_general
+    )
+
     workflow.add_node("aggregator_node", aggregator_node)
 
     workflow.add_edge(START, "router")
     workflow.add_conditional_edges("router", route_to_agent, {
-        "order_manager": "order_manager",
+        "order_manager":   "order_manager",
         "product_support": "product_support",
-        "general": "general",
-        "router": "router"
+        "general":         "general",
+        "router":          "router"
     })
-    
+
     for worker in ["order_manager", "product_support", "general"]:
         workflow.add_conditional_edges(
             worker,
             after_worker_route,
             {
-                "aggregator_node": "aggregator_node", 
+                "aggregator_node": "aggregator_node",
                 "end": END
             }
         )
+
     workflow.add_edge("aggregator_node", END)
 
     graph = workflow.compile(checkpointer=MEMORY)
-    #print(graph.get_graph().draw_mermaid())
-    logger.info("Graph is compiled")
+    logger.info("Graph compiled")
     return graph

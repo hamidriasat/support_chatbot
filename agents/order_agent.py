@@ -57,7 +57,27 @@ def order_node(state: SubAgentState):
 
         response = _LLM_WITH_TOOLS.invoke(messages)
         logger.info(f"Order Agent Response: {response}")
-        
+
+        if hasattr(response, "tool_calls") and response.tool_calls and not response.content:
+            # Check if any of the tools being called are the 'update_order' tool
+            update_calls = [tc for tc in response.tool_calls if tc["name"] == "update_order"]
+            
+            if update_calls:
+                # Build a dynamic message based on the tool's arguments
+                summaries = []
+                for tc in update_calls:
+                    # Extract the arguments your tool uses
+                    order_id = tc["args"].get("order_id", "Unknown Order")
+                    updates = tc["args"].get("updates", {})
+                    change_list = [f"{key} to '{val}'" for key, val in updates.items()]
+
+                    if change_list:
+                        changes_str = ", ".join(change_list)
+                        summaries.append(f"Order {order_id} ({changes_str})")
+                
+                if summaries:
+                    # Assign the manual message directly to the response content
+                    response.content = f"I am preparing to update your order: {', '.join(summaries)}. Do you approve?"
         return {"messages": [response]}
     
     except Exception as e:
@@ -91,7 +111,7 @@ def order_should_continue(state: SubAgentState) -> str:
 
 
 # order agent sub-graph
-def create_order_subgraph(checkpointer=None):
+def create_order_subgraph():
     """Create order agent subgraph with tool calling loop"""
     subgraph = StateGraph(SubAgentState)
     
@@ -118,4 +138,4 @@ def create_order_subgraph(checkpointer=None):
     subgraph.add_edge("read_tools", "agent")
     subgraph.add_edge("update_tools", "agent") 
     
-    return subgraph.compile(checkpointer=checkpointer, interrupt_before=["update_tools"])
+    return subgraph.compile(interrupt_before=["update_tools"])

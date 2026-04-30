@@ -80,7 +80,7 @@ def general_should_continue(state: SubAgentState) -> str:
 
 
 # order agent sub-graph
-def create_general_subgraph(checkpointer=None):
+def create_general_subgraph():
     """Create general agent subgraph with tool calling loop"""
     subgraph = StateGraph(SubAgentState)
     
@@ -104,4 +104,4 @@ def create_general_subgraph(checkpointer=None):
     # After tools, always go back to agent
     subgraph.add_edge("tools", "agent")
     
-    return subgraph.compile(checkpointer=checkpointer)
+    return subgraph.compile()

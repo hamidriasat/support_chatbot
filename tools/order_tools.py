@@ -65,32 +65,38 @@ def read_order(order_id: str):
 
 # update the order
 @tool(description="update_order")
-def update_order(order_id: str, column: str, value: str):
+def update_order(order_id: str, updates: dict):
     """
-    Update a specific field of an existing order.
+    Update one or more fields of an existing order in a single operation.
 
-    Use this tool when you need to modify order information such as status, address, or other fields.
+    Use this tool when you need to modify order information. Pass all related
+    changes together (e.g., when adding a product, include product, price, 
+    and total_price in the same call).
 
     Parameters:
         order_id (str): The unique identifier of the order (case-insensitive).
-        column (str): The column name to update (must match a valid column in the order dataset).
-        value (str): The new value to assign to the specified column.
+        updates (dict): A dictionary of {column: value} pairs to update.
+                        Example: {"product": "Widget", "price": 9.99, "total_price": 29.97}
 
     Returns:
         str: Confirmation message if the update is successful.
-
-    Errors:
-        - Returns "order id does not exist." if the order is not found.
-        - May fail if the column name is invalid.
     """
     initialize()
     try:
-        DF_ORDER.loc[order_id.lower(), column]= value
+        for column, value in updates.items():
+            target_dtype = DF_ORDER[column].dtype
+            typed_value = value
+            if "int" in str(target_dtype):
+                typed_value = int(float(str(value)))
+            elif "float" in str(target_dtype):
+                typed_value = float(value)
+            DF_ORDER.loc[order_id.lower(), column] = typed_value
+
         DF_ORDER.to_csv(settings.get("ORDER_DATA_PATH"), index=True)
-        return "order is updated."
+        return f"Order updated successfully: {list(updates.keys())}"
 
     except KeyError:
-        return "order id does not exits."
+        return "Order id does not exist."
 
 
 def format_inventory_response(inventory):

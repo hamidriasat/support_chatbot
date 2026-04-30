@@ -3,9 +3,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from langchain.messages import HumanMessage
 from langgraph.types import Command
-from graph.graph import build_workflow
+from graph.graph import build_workflow, ORDER_AGENT
 from models.request_model import InputModel
 from models.response_model import ResponseModel
+from utils.state_helper import extract_message_from_interrupted_subgraph
 
 app = FastAPI(title="Chatbot Backend")
 app.add_middleware(
@@ -28,11 +29,10 @@ async def chat_endpoint(request: InputModel):
         "recursion_limit": 10
     }
 
-    current_state = GRAPH.get_state(config)
+    current_state = GRAPH.get_state(config, subgraphs=True)
     
     if current_state.next:
-        # Determine which agent we're waiting in by checking the last message
-        # and resuming appropriately
+        # Graph is interrupted — resume with user's confirmation
         response = GRAPH.invoke(
             Command(resume=HumanMessage(content=request.message)),
             config=config
@@ -41,25 +41,21 @@ async def chat_endpoint(request: InputModel):
         user_message = {"messages": [HumanMessage(content=request.message)]}
         response = GRAPH.invoke(user_message, config=config)
     
-    new_state = GRAPH.get_state(config)
+    new_state = GRAPH.get_state(config, subgraphs=True)
     waiting = len(new_state.next) > 0
-
     # Get the final message content
     final_content = ""
-    
-    if response.get("messages") and len(response["messages"]) > 0:
-        final_content = response["messages"][-1].content
-    
     # If we're waiting and there's no content, check the state values for the last message
-    if waiting and not final_content:
-        state_messages = new_state.values.get("messages", [])
-        if state_messages:
-            # Get the last AI message from state
-            for msg in reversed(state_messages):
-                if hasattr(msg, 'content') and msg.content and not isinstance(msg, HumanMessage):
+    if waiting:
+        final_content = extract_message_from_interrupted_subgraph(new_state)
+    
+    if not final_content:
+        parent_messages = new_state.values.get("messages", [])
+        for msg in reversed(parent_messages):
+            if hasattr(msg, "content") and msg.content:
+                if not isinstance(msg, HumanMessage):
                     final_content = msg.content
                     break
-
     return {
         "response": final_content,
         "waiting_for_approval": waiting
