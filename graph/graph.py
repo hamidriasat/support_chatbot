@@ -1,6 +1,6 @@
 import logging
 from langgraph.graph import StateGraph, START, END
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.postgres import PostgresSaver
 from agents.router_agent import router
 from state.graph_state import AgentState
 from agents.general_agent import create_general_subgraph
@@ -8,13 +8,14 @@ from agents.order_agent import create_order_subgraph
 from agents.product_agent import create_product_subgraph
 from agents.aggregator_agent import aggregator_node
 from graph.conditions import route_to_agent, after_worker_route
+from utils.postgres_conn import connection
 from utils.logger import setup_logger
 
 
 setup_logger()
 logger = logging.getLogger(__name__)
-MEMORY = MemorySaver()
-
+conn_pool = connection()
+MEMORY = PostgresSaver(conn_pool)
 PRODUCT_AGENT = create_product_subgraph()
 ORDER_AGENT = create_order_subgraph()
 GENERAL_AGENT = create_general_subgraph()
@@ -23,7 +24,7 @@ GENERAL_AGENT = create_general_subgraph()
 # ── Entry/exit mappers ──────────────────────────────────────────────
 
 def enter_subgraph(state: AgentState) -> dict:
-    """Pass only the latest user message into the subgraph."""
+    """Pass users message into the subgraph."""
     return {"messages": state["messages"]}
 
 

@@ -18,6 +18,8 @@ A FastAPI-based backend for an intelligent customer service chatbot powered by L
 - Groq API key
 - OpenAI API key
 
+- PostgreSQL: install Postgres on your system and ensure it's running. Update the `DB_URI` in `settings.toml` with your database connection string before running the setup step below.
+
 ### Setup
 
 1. **Clone or navigate to the project directory**
@@ -53,6 +55,14 @@ A FastAPI-based backend for an intelligent customer service chatbot powered by L
 
    This will create the vector database collections needed by the chatbot.
 
+6. **Setup PostgreSQL tables (first-time only)**
+
+   If you plan to use Postgres-backed features, run the table setup script once to create required tables:
+
+   ```bash
+   python -m utils.postgres_conn
+   ```
+
 ## Running the Server
 
 ```bash
@@ -71,7 +81,8 @@ Send a message to the chatbot.
 **Request:**
 ```json
 {
-  "message": "What supplements does Nutritional World offer?"
+   "message": "What supplements does Nutritional World offer?",
+   "chat_id": "1234"
 }
 ```
 
@@ -121,7 +132,9 @@ backend/
 │   └── product_search.py         # Product search tools
 ├── utils/
 │   ├── config.py                 # Dynaconf and config helpers
-│   └── logger.py                 # Logging utilities
+│   ├── logger.py                 # Logging utilities
+│   ├── postgres_conn.py          # Postgres connection & setup helper
+│   └── state_helper.py           # State helper functions
 ├── models/
 │   ├── request_model.py          # InputModel - incoming chat messages
 │   └── response_model.py         # ResponseModel - outgoing responses
