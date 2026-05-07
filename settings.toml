@@ -9,6 +9,7 @@ GENERAL_PROMPT = "prompts/general.md"
 ORDER_PROMPT = "prompts/order.md"
 PRODUCT_PROMPT = "prompts/product.md"
 AGGREGATOR_PROMPT = "prompts/aggregator.md"
+SUMMARY_PROMPT = "prompts/summary.md"
 
 # Data paths
 PRODUCT_DATA_PATH = "data/products.csv"

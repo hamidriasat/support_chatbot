@@ -3,6 +3,7 @@ from langgraph.graph import StateGraph, START, END
 from langgraph.checkpoint.postgres import PostgresSaver
 from agents.router_agent import router
 from state.graph_state import AgentState
+from agents.summary_agent import summary_node
 from agents.general_agent import create_general_subgraph
 from agents.order_agent import create_order_subgraph
 from agents.product_agent import create_product_subgraph
@@ -25,7 +26,10 @@ GENERAL_AGENT = create_general_subgraph()
 
 def enter_subgraph(state: AgentState) -> dict:
     """Pass users message into the subgraph."""
-    return {"messages": state["messages"]}
+
+    return {"messages": state["messages"][-3:],
+            "summary": state.get("summary", "No summary yet.")
+            }
 
 
 def exit_order(state: dict) -> dict:
@@ -59,6 +63,7 @@ def build_workflow():
     workflow = StateGraph(AgentState)
 
     workflow.add_node("router", router)
+    workflow.add_node("summary_node", summary_node)
 
     # ✅ Subgraphs added directly as nodes with entry/exit mappers
     workflow.add_node(
@@ -78,6 +83,7 @@ def build_workflow():
 
     workflow.add_edge(START, "router")
     workflow.add_conditional_edges("router", route_to_agent, {
+        "summary_node":    "summary_node",
         "order_manager":   "order_manager",
         "product_support": "product_support",
         "general":         "general",
@@ -93,7 +99,7 @@ def build_workflow():
                 "end": END
             }
         )
-
+    workflow.add_edge("summary_node", "router")
     workflow.add_edge("aggregator_node", END)
 
     graph = workflow.compile(checkpointer=MEMORY)

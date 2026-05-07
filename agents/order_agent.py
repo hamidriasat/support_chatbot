@@ -51,9 +51,12 @@ def _initialize_llm():
 
 
 def order_node(state: SubAgentState):
+    
+    _initialize_llm()
     try:
-        _initialize_llm()
-        messages = [SystemMessage(content=_ORDER_PROMPT_CONTENT)] + state["messages"]
+        current_summary = state.get("summary", "No summary available.")
+        formatted_prompt = _ORDER_PROMPT_CONTENT.replace("{summary}", current_summary)
+        messages = [SystemMessage(content=formatted_prompt)] + state["messages"]
 
         response = _LLM_WITH_TOOLS.invoke(messages)
         logger.info(f"Order Agent Response: {response}")

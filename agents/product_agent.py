@@ -49,13 +49,15 @@ def _initialize_llm():
 
     llm = ChatGroq(model=model_name, temperature=0.3, api_key=groq_api_key)
     _LLM_WITH_TOOLS = llm.bind_tools(PRODUCT_TOOLS)
-    logger.info("ChatGroq LLM and Product Tools globally initialized.")
 
 
 def product_node(state: SubAgentState):
+    
+    _initialize_llm()
     try:
-        _initialize_llm()
-        messages = [SystemMessage(content=_PRODUCT_PROMPT_CONTENT)] + state["messages"]
+        current_summary = state.get("summary", "No summary available.")
+        formatted_prompt = _PRODUCT_PROMPT_CONTENT.format(summary=current_summary)
+        messages = [SystemMessage(content=formatted_prompt)] + state["messages"]
 
         response = _LLM_WITH_TOOLS.invoke(messages)
         logger.info(f"Product Agent Response: {response}")

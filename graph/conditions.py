@@ -8,6 +8,10 @@ def route_to_agent(state: AgentState) -> List[str]:
     
     Based on router's classification.
     """
+    if len(state["messages"]) > 6:
+        return ["summary_node"]
+
+
     decision = state["router_decision"]
 
     # Simple mapping
@@ -24,6 +28,7 @@ def route_to_agent(state: AgentState) -> List[str]:
         return ["general"]
     
     return next_node
+
 
 def after_worker_route(state: AgentState) -> Literal["aggregator_node", "end"]:
     """

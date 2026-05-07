@@ -4,6 +4,7 @@ from langgraph.graph.message import MessagesState
 
 class AgentState(MessagesState):
     router_decision : List[str] = []
+    summary: Optional[str] = ""
 
     order_response: Optional[str]= ""
     product_response: Optional[str]= ""

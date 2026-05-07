@@ -53,7 +53,9 @@ def general_node(state: SubAgentState):
     
     _initialize_llm()
     try:
-        messages = [SystemMessage(content=_GENERAL_PROMPT_CONTENT)] + state["messages"]
+        current_summary = state.get("summary", "No summary available.")
+        formatted_prompt = _GENERAL_PROMPT_CONTENT.format(summary=current_summary)
+        messages = [SystemMessage(content=formatted_prompt)] + state["messages"]
         response = _LLM_WITH_TOOLS.invoke(messages)
         logger.info(f"General Agent Response: {response}")
 
