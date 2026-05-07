@@ -20,10 +20,21 @@
   gap: 16px;
 }
 
+/* Voice approval variant */
+.chat-input__approval--voice {
+  background: rgba(168, 85, 247, 0.05);
+  border-color: rgba(168, 85, 247, 0.2);
+  justify-content: center;
+}
+
 .chat-input__approval-text {
   font-size: 14px;
   font-weight: 500;
   color: var(--color-text);
+}
+
+.chat-input__approval--voice .chat-input__approval-text {
+  color: #a855f7;
 }
 
 .chat-input__approval-buttons {
@@ -139,4 +150,86 @@
 .chat-input__send:disabled {
   opacity: 0.4;
   cursor: not-allowed;
+}
+
+/* Microphone button */
+.chat-input__mic {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 2px solid var(--color-accent);
+  background: transparent;
+  color: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  outline: none;
+}
+
+.chat-input__mic:hover:not(:disabled) {
+  background: rgba(59, 130, 246, 0.1);
+  transform: scale(1.05);
+}
+
+.chat-input__mic:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.chat-input__mic:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Recording state */
+.chat-input__mic--recording {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
+  color: #ef4444;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+/* Recording status indicator */
+.chat-input__recording-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #ef4444;
+}
+
+.chat-input__recording-indicator {
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  animation: blink 1s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 49% {
+    opacity: 1;
+  }
+  50%, 100% {
+    opacity: 0.4;
+  }
+}
+
+.chat-input__recording-text {
+  font-weight: 500;
 }

@@ -13,7 +13,21 @@ import { ChatInput } from "./Chatinput";
 import "./Chatpanel.css";
 
 export function ChatPanel() {
-  const { messages, isLoading, error, send, clearChat, newChat, isConnected, waitingForApproval, handleApproval } = useChat();
+  const { 
+    messages, 
+    isLoading, 
+    error, 
+    send, 
+    clearChat, 
+    newChat, 
+    isConnected, 
+    waitingForApproval, 
+    handleApproval,
+    isRecording,
+    startVoiceRecording,
+    stopVoiceRecording,
+    approvalType,
+  } = useChat();
 
   return (
     <div className="chat-panel">
@@ -54,7 +68,16 @@ export function ChatPanel() {
       )}
 
       {/* ── Input ── */}
-      <ChatInput onSend={send} isLoading={isLoading} waitingForApproval={waitingForApproval} onApproval={handleApproval} />
+      <ChatInput 
+        onSend={send} 
+        isLoading={isLoading} 
+        waitingForApproval={waitingForApproval} 
+        onApproval={handleApproval}
+        isRecording={isRecording}
+        onStartRecording={startVoiceRecording}
+        onStopRecording={stopVoiceRecording}
+        approvalType={approvalType}
+      />
     </div>
   );
 }

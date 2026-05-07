@@ -80,6 +80,52 @@ export async function sendApproval(approved, chatId) {
 }
 
 /**
+ * Send voice message (audio) to the FastAPI backend.
+ *
+ * @param {Blob} audioBlob  - The recorded audio as a Blob
+ * @param {string} chatId   - UUID for this chat session
+ * @returns {Promise<{response: string, waiting_for_approval: boolean, transcription: string, audio: string}>} - The backend response with transcription and audio
+ */
+export async function sendVoice(audioBlob, chatId) {
+  try {
+    const formData = new FormData();
+    formData.append("audio", audioBlob, "audio.wav");
+    formData.append("chat_id", chatId);
+
+    const response = await fetch(`${BASE_URL}/voice`, {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Return the response along with transcription and audio
+    return {
+      response: data.response ?? "No response from server.",
+      waiting_for_approval: data.waiting_for_approval ?? false,
+      transcription: data.transcription ?? "",
+      audio: data.audio ?? "",
+    };
+  } catch (err) {
+    console.error("Error sending voice message:", err);
+    throw err;
+  }
+}
+
+/**
+ * Send approval decision for voice message to the backend.
+ *
+ * @param {boolean} approved - True if user approved, false if rejected
+ * @param {string} chatId    - UUID for this chat session
+ * @returns {Promise<{response: string, waiting_for_approval: boolean, audio: string}>} - The backend response with audio
+ */
+
+
+/**
  * Check if the backend is connected and healthy.
  *
  * @returns {Promise<boolean>} - True if backend is reachable, false otherwise
