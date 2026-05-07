@@ -1,5 +1,4 @@
 import uvicorn
-from groq import Groq
 from fastapi import FastAPI, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from langchain.messages import HumanMessage
@@ -8,7 +7,7 @@ from graph.graph import build_workflow
 from models.request_model import InputTextModel
 from models.response_model import ResponseModel, VoiceResponseModel
 from utils.state_helper import extract_message_from_interrupted_subgraph
-from utils.config import settings
+from utils.voice_handle import sst_groq, tts_groq
 
 
 app = FastAPI(title="Chatbot Backend")
@@ -20,7 +19,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-GROQ_CLIENT = Groq(api_key=settings.get("GROQ_API_KEY"))
 GRAPH = build_workflow()
 
 
@@ -77,14 +75,18 @@ async def voice_endpoint(audio: UploadFile = File(...),
         },
         "recursion_limit": 10
     }
-
-    audio_bytes = await audio.read()
-    transcription = GROQ_CLIENT.audio.transcriptions.create(
-        file=(audio.filename, audio_bytes),
-        model="whisper-large-v3-turbo"
-        )
-    user_text = transcription.text
-    print(f"Transcribed audio to text: {user_text}")
+    
+    user_text = await sst_groq(audio)
+    # If transcription is empty, return a nudge response prompting the user to try again
+    if not user_text:
+        nudge_text = "I'm sorry, I didn't catch that. Could you please repeat your question?"
+        audio_base64 = tts_groq(nudge_text)
+        return {
+            "response": nudge_text,
+            "audio": audio_base64,
+            "transcription": "",
+            "waiting_for_approval": False
+        }
 
     current_state = GRAPH.get_state(config, subgraphs=True)
     
@@ -112,10 +114,14 @@ async def voice_endpoint(audio: UploadFile = File(...),
                 if not isinstance(msg, HumanMessage):
                     final_content = msg.content
                     break
+    
+    audio_base64 = tts_groq(final_content)
+    
     return {
         "transcription": user_text,
         "response": final_content,
-        "waiting_for_approval": waiting
+        "waiting_for_approval": waiting,
+        "audio": audio_base64
     }
 
 

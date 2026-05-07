@@ -2,6 +2,8 @@
 # Model name
 LLM = "openai/gpt-oss-20b"
 EMBEDDING_MODEL = "text-embedding-3-small"
+STT_MODEL = "whisper-large-v3-turbo"
+TTS_MODEL = "canopylabs/orpheus-v1-english"
 
 # Prompt paths
 ROUTER_PROMPT = "prompts/router.md"

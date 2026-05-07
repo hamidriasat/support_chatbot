@@ -7,3 +7,4 @@ class ResponseModel(BaseModel):
 
 class VoiceResponseModel(ResponseModel):
     transcription: str
+    audio: str
