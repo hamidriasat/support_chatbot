@@ -15,7 +15,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000"],
     allow_credentials=True,
-    allow_methods=["POST", "GET"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -87,6 +87,14 @@ async def voice_endpoint(audio: UploadFile = File(...),
             "transcription": "",
             "waiting_for_approval": False
         }
+    if "error" in user_text.lower():
+        audio_base64 = tts_groq(user_text)
+        return {
+            "response": user_text,
+            "audio": audio_base64,
+            "transcription": "",
+            "waiting_for_approval": False   
+        }
 
     current_state = GRAPH.get_state(config, subgraphs=True)
     
@@ -116,6 +124,14 @@ async def voice_endpoint(audio: UploadFile = File(...),
                     break
     
     audio_base64 = tts_groq(final_content)
+
+    if "error" in audio_base64.lower():
+        return {
+            "response": audio_base64,
+            "audio": "",
+            "transcription": user_text,
+            "waiting_for_approval": False
+        }
     
     return {
         "transcription": user_text,
