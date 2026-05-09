@@ -2,22 +2,30 @@
    Single source of truth for design tokens.
    Change a color once here → updates everywhere. */
 
+@import url("https://fonts.cdnfonts.com/css/colfax");
+
 :root {
-  /* Colors — Dark Theme */
-  --color-bg:               #0f172a;
-  --color-surface:          #1e293b;
-  --color-border:           #334155;
-  --color-text:             #f1f5f9;
-  --color-text-muted:       #94a3b8;
-  --color-accent:           #3b82f6;
-  --color-accent-hover:     #2563eb;
-  --color-user-bubble:      #1e40af;
-  --color-user-avatar:      #1e40af;
-  --color-assistant-bubble: #334155;
-  --color-input-bg:         #1e293b;
+  /* Colors — Deep Dark Green (AI Chat inspired) */
+  --color-bg:               #0a0f0a; /* Near-black with green undertone */
+  --color-surface:          #111511; /* Dark panel/sidebar surface */
+  --color-border:           #1f2b1f; /* Subtle dark green border */
 
   /* Typography */
-  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --color-text:             #e8ece8; /* Soft off-white with green tint */
+  --color-text-muted:       #4a5e4a; /* Muted dark sage */
+
+  /* Accents — Koopa Green Shell */
+  --color-accent:           #54c750;
+  --color-accent-hover:     #3ea83b;
+
+  /* Bubbles */
+  --color-user-bubble:      #1a241a; /* Dark green-tinted chip */
+  --color-user-avatar:      #54c750;
+  --color-assistant-bubble: #161d16; /* Slightly lighter than bg */
+  --color-input-bg:         #131813; /* Dark input bar */
+
+  /* Typography */
+  --font-sans: "Colfax", system-ui, -apple-system, sans-serif;
 
   /* Spacing */
   --radius-md: 12px;

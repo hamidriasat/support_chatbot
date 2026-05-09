@@ -34,12 +34,12 @@
 
 .message--user .message__avatar {
   background-color: var(--color-user-avatar);
-  color: var(--color-bg);
+  color: #0a0f0a;
 }
 
 .message--assistant .message__avatar {
   background-color: var(--color-accent);
-  color: #fff;
+  color: #0a0f0a;
 }
 
 .message__bubble {
@@ -50,17 +50,7 @@
 
 .message--user .message__bubble {
   background-color: var(--color-user-bubble);
-  color: #fff;
-}
-
-.message--assistant .message__bubble {
-  background-color: var(--color-assistant-bubble);
   color: var(--color-text);
-}
-
-.message--user .message__bubble {
-  background-color: var(--color-user-bubble);
-  color: var(--color-bg);
   border-bottom-right-radius: 4px;
 }
 
@@ -74,7 +64,7 @@
 .message__text {
   margin: 0;
   font-size: 14px;
-  white-space: pre-wrap; /* preserves line breaks from the API */
+  white-space: pre-wrap;
 }
 
 @keyframes fadeUp {

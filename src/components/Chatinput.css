@@ -14,16 +14,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 12px 14px;
-  background: rgba(59, 130, 246, 0.05);
-  border: 1px solid rgba(59, 130, 246, 0.2);
+  background: rgba(84, 199, 80, 0.05);
+  border: 1px solid rgba(84, 199, 80, 0.2);
   border-radius: 8px;
   gap: 16px;
 }
 
 /* Voice approval variant */
 .chat-input__approval--voice {
-  background: rgba(168, 85, 247, 0.05);
-  border-color: rgba(168, 85, 247, 0.2);
+  background: rgba(84, 199, 80, 0.07);
+  border-color: rgba(84, 199, 80, 0.25);
   justify-content: center;
 }
 
@@ -34,7 +34,7 @@
 }
 
 .chat-input__approval--voice .chat-input__approval-text {
-  color: #a855f7;
+  color: var(--color-accent);
 }
 
 .chat-input__approval-buttons {
@@ -55,12 +55,12 @@
 }
 
 .chat-input__approval-yes {
-  background: #22c55e;
-  color: white;
+  background: var(--color-accent);
+  color: #0a0f0a;
 }
 
 .chat-input__approval-yes:hover:not(:disabled) {
-  background: #16a34a;
+  background: var(--color-accent-hover);
   transform: translateY(-1px);
 }
 
@@ -69,12 +69,13 @@
 }
 
 .chat-input__approval-no {
-  background: #ef4444;
-  color: white;
+  background: #2a1a1a;
+  color: #e05050;
+  border: 1px solid #3a2020;
 }
 
 .chat-input__approval-no:hover:not(:disabled) {
-  background: #dc2626;
+  background: #3a2020;
   transform: translateY(-1px);
 }
 
@@ -131,7 +132,7 @@
   border-radius: 10px;
   border: none;
   background: var(--color-accent);
-  color: #fff;
+  color: #0a0f0a;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -170,7 +171,7 @@
 }
 
 .chat-input__mic:hover:not(:disabled) {
-  background: rgba(59, 130, 246, 0.1);
+  background: rgba(84, 199, 80, 0.1);
   transform: scale(1.05);
 }
 
@@ -185,18 +186,18 @@
 
 /* Recording state */
 .chat-input__mic--recording {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
-  color: #ef4444;
+  background: rgba(224, 80, 80, 0.1);
+  border-color: #e05050;
+  color: #e05050;
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    box-shadow: 0 0 0 0 rgba(224, 80, 80, 0.7);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+    box-shadow: 0 0 0 8px rgba(224, 80, 80, 0);
   }
 }
 
@@ -206,17 +207,17 @@
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  background: rgba(239, 68, 68, 0.05);
-  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(224, 80, 80, 0.05);
+  border: 1px solid rgba(224, 80, 80, 0.2);
   border-radius: 8px;
   font-size: 13px;
-  color: #ef4444;
+  color: #e05050;
 }
 
 .chat-input__recording-indicator {
   width: 8px;
   height: 8px;
-  background: #ef4444;
+  background: #e05050;
   border-radius: 50%;
   animation: blink 1s ease-in-out infinite;
 }

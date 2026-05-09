@@ -27,7 +27,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #22c55e; /* green = online */
+  background: var(--color-accent);
 }
 
 .chat-panel__title {
@@ -50,7 +50,7 @@
 
 .chat-panel__new-chat:hover {
   background: var(--color-accent);
-  color: #fff;
+  color: #0a0f0a;
 }
 
 .chat-panel__clear {
@@ -73,9 +73,9 @@
 .chat-panel__error {
   margin: 0 20px 8px;
   padding: 10px 14px;
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
+  background: rgba(224, 80, 80, 0.07);
+  color: #e05050;
+  border: 1px solid rgba(224, 80, 80, 0.2);
   border-radius: 8px;
   font-size: 13px;
 }
