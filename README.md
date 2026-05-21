@@ -17,7 +17,8 @@ A FastAPI-based backend for an intelligent customer service chatbot powered by L
 - Python 3.12.13
 - Groq API key
 - OpenAI API key
-
+- FFmpeg
+- Twilio account: make your account and run the whatsapp sandbox. add your public url in the sandbox configuration.
 - PostgreSQL: install Postgres on your system and ensure it's running. Update the `DB_URI` in `settings.toml` with your database connection string before running the setup step below.
 
 ### Setup
@@ -42,6 +43,12 @@ A FastAPI-based backend for an intelligent customer service chatbot powered by L
    [default]
    OPENAI_API_KEY = "your-openai-api-key-here"
    GROQ_API_KEY = "your-groq-api-key-here"
+   NGROK_API = "your-ngrok-api-key"
+   TWILIO_AUTH_TOKEN= "your-twilio-auth-token"
+   TWILIO_ACCOUNT_SID= "your-twilio-account-sid"
+   TWILIO_FROM_NUMBER = "your-twilio-whatsapp-number"
+   TWILIO_CONTENT_SID = "content-sid-for-your-quick-reply-template"
+   PUBLIC_BASE_URL = "url-for-ngrok-so-that-after-restarting-server-your-url-does-not-change"
    ```
 
 5. **Initialize the vector database**

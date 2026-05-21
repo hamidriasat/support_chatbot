@@ -43,3 +43,4 @@ def setup_logger():
     logging.getLogger("urllib3").setLevel(logging.WARNING)
     logging.getLogger("openai").setLevel(logging.WARNING)
     logging.getLogger("groq").setLevel(logging.WARNING)
+    logging.getLogger("pyngrok").setLevel(logging.CRITICAL)

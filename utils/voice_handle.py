@@ -1,4 +1,5 @@
 import base64
+import re
 import logging
 from groq import Groq, APIConnectionError
 from utils.config import settings
@@ -29,10 +30,27 @@ async def sst_groq(audio):
         return f"Error: {error_message}"
 
 
+
+# helper fucntion to split the numbers in the text
+def prepare_text_for_model(text: str) -> str:
+    """
+    Finds contiguous numbers in text and breaks them up with 
+    commas and spaces so Orpheus reads them digit-by-digit.
+    """
+    # This matches any sequence of 2 or more digits
+    def digit_splitter(match):
+        digits = match.group(0)
+        return ", ".join(digits)
+        
+    # Example: "text have 2344" -> "this convert into 2, 3, 4, 4"
+    return re.sub(r'\d{6,}', digit_splitter, text)
+
+
 def tts_groq(text):
     try:
+        tts_payload = prepare_text_for_model(text)
         tts_response = GROQ_CLIENT.audio.speech.create(
-            input=text,
+            input=tts_payload,
             model=TTS_MODEL,
             voice="diana",
             response_format="wav",

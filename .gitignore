@@ -25,3 +25,4 @@ tools/__pycache__
 state/__pycache__
 database/__pycache__
 harvard.wav
+static/
