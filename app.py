@@ -96,8 +96,8 @@ async def whatsapp_webhook(
     chat_id = from_number.replace("whatsapp:", "").strip()
     body = form_data.get("Body", "").strip()
     num_media = int(form_data.get("NumMedia", "0"))
-    ButtonPayload: str = Form(None)
-    print(f"button payload: {ButtonPayload}\n body: {body}")
+
+    interactive_buttons = ["Confirm", "Cancel"]
  
     # Dispatch
     if num_media > 0:
@@ -114,8 +114,8 @@ async def whatsapp_webhook(
                 "Sorry, I can only process text messages and voice notes."
                 " Please send a text or audio message. 🎙️✍️",
             )
-    elif ButtonPayload:
-        background_tasks.add_task(process_button_reply, ButtonPayload, chat_id)
+    elif body in interactive_buttons:
+        background_tasks.add_task(process_button_reply, body, chat_id)
     else:
         if not body:
             return PlainTextResponse(

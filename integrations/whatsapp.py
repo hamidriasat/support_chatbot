@@ -4,6 +4,7 @@ import io
 import json
 import uuid
 import time
+import logging
 from pathlib import Path
 import subprocess
 import requests
@@ -12,9 +13,11 @@ from twilio.rest import Client
 from twilio.request_validator import RequestValidator
 from graph_handler import handle_chat, handle_voice
 from utils.config import settings
+from utils.logger import setup_logger
 from paths import PUBLIC_BASE_URL, STATIC_DIR
 
-
+setup_logger()
+logger = logging.getLogger(__name__)
 
 TWILIO_ACCOUNT_SID = settings.get('TWILIO_ACCOUNT_SID')
 TWILIO_AUTH_TOKEN = settings.get('TWILIO_AUTH_TOKEN')
@@ -36,11 +39,14 @@ def verify_twilio_signature(request_url = None, post_params = None, signature = 
 
 def send_whatsapp_text(to = None, body = None):
     '''Send a plain-text WhatsApp message via Twilio Messages API.'''
-    twilio_client.messages.create(
-        from_ = f'''whatsapp:{TWILIO_FROM_NUMBER}''',
-        to = f'''whatsapp:{to}''',
-        body = body
-        )
+    try:
+        twilio_client.messages.create(
+            from_ = f'''whatsapp:{TWILIO_FROM_NUMBER}''',
+            to = f'''whatsapp:{to}''',
+            body = body
+            )
+    except Exception as e:
+        logger.error(f"[error] Failed to send message to {to}: {e}")
 
 
 def send_whatsapp_media(to = None, media_url = None):
@@ -49,11 +55,14 @@ def send_whatsapp_media(to = None, media_url = None):
     `media_url` must be a publicly reachable HTTPS URL — our ngrok static URL.
     Note: Twilio free tier supports sending media on WhatsApp sandbox.
     '''
-    twilio_client.messages.create(
-        from_ = f'''whatsapp:{TWILIO_FROM_NUMBER}''',
-        to = f'''whatsapp:{to}''',
-        media_url = [media_url]
+    try:
+        twilio_client.messages.create(
+            from_ = f'''whatsapp:{TWILIO_FROM_NUMBER}''',
+            to = f'''whatsapp:{to}''',
+            media_url = [media_url]
         )
+    except Exception as e:
+        logger.error(f"[error] Failed to send message to {to}: {e}")
 
 
 def send_whatsapp_interactive(to = None, body = None):
@@ -61,16 +70,19 @@ def send_whatsapp_interactive(to = None, body = None):
     Send a WhatsApp interactive message with buttons via Twilio Messages API.
     `buttons` should be a list of dicts.
     '''
-    template_vars = {
-        "1": body
-    }
-    twilio_client.messages.create(
-        from_ = f'''whatsapp:{TWILIO_FROM_NUMBER}''',
-        to = f'''whatsapp:{to}''',
-        content_sid= CONTENT_SID,
-        content_variables=json.dumps(template_vars)
-    )
-    print(f"[interactive] Sent buttons to {to}")
+    try:
+        template_vars = {
+            "1": body
+        }
+        twilio_client.messages.create(
+            from_ = f'''whatsapp:{TWILIO_FROM_NUMBER}''',
+            to = f'''whatsapp:{to}''',
+            content_sid= CONTENT_SID,
+            content_variables=json.dumps(template_vars)
+        )
+        logger.info(f"[interactive] Sent buttons to {to}")
+    except Exception as e:
+        logger.error(f"[error] Failed to send message to {to}: {e}")
 
 
 def save_audio_and_get_url(audio_base64 = None, chat_id = None):
@@ -95,7 +107,7 @@ def save_audio_and_get_url(audio_base64 = None, chat_id = None):
         ], check = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
         return f"{PUBLIC_BASE_URL}/static/audio/{filename}"
     except Exception as e:
-        print(f"Audio processing error: {e}")
+        logger.error(f"Audio processing error: {e}")
         return ""
     finally:
         if temp_path.exists():
@@ -124,7 +136,6 @@ async def process_text_message(message = None, chat_id = None):
         return
     
     send_whatsapp_text(to=chat_id, body=response_text)
-    print(f"[chat] → {chat_id} | waiting={waiting} | {response_text[:80]!r}")
 
 
 async def process_voice_message(media_url: str, chat_id: str) -> None:
@@ -179,13 +190,13 @@ async def process_voice_message(media_url: str, chat_id: str) -> None:
         )
 
 
-async def process_button_reply(button_id: str, chat_id: str) -> None:
+async def process_button_reply(body: str, chat_id: str) -> None:
     """
     Handles the user's button click response.
     Sends the button_id to AI which updates the CSV accordingly.
     """
 
-    if button_id == "yes":
+    if body == "Confirm":
         # Tell AI user confirmed the change
         message="User confirmed the order changes."
         result = await handle_chat(message=message, chat_id=chat_id)
@@ -194,9 +205,9 @@ async def process_button_reply(button_id: str, chat_id: str) -> None:
             to=chat_id,
             body=f"✅ {response_text}"
         )
-        print(f"[button] Order change confirmed by {chat_id}")
+        logger.info(f"[button] Order change confirmed by {chat_id}")
 
-    elif button_id == "no":
+    elif body == "Cancel":
         # Tell AI user cancelled the change
         message="User cancelled the order change. Please keep the original order.",
         result = await handle_chat(message=message, chat_id=chat_id)
@@ -205,11 +216,11 @@ async def process_button_reply(button_id: str, chat_id: str) -> None:
             to=chat_id,
             body=f"❌ {response_text}"
         )
-        print(f"[button] Order change cancelled by {chat_id}")
+        logger.info(f"[button] Order change cancelled by {chat_id}")
 
     else:
         # Unknown button id — safety net
-        print(f"[button] Unknown button_id: {button_id} from {chat_id}")
+        logger.error(f"[button] Unknown button_title: {body} from {chat_id}")
         send_whatsapp_text(
             to=chat_id,
             body="Sorry, something went wrong. Please try again."
@@ -232,6 +243,6 @@ def cleanup_old_audio_files(static_dir = None, max_age_seconds = 120):
                 file_path.unlink()
                 deleted_count += 1
         except Exception as e:
-            print(f"Error deleting file {file_path.name}: {e}")
+            logger.error(f"Error deleting file {file_path.name}: {e}")
     if deleted_count > 0:
-        print(f'''[Cleanup] Removed {deleted_count} expired audio file(s).''')
+        logger.info(f'''[Cleanup] Removed {deleted_count} expired audio file(s).''')
